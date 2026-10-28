@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>나의 취향 페이지</title>
+  <style>
+    /* TODO: 색, 글꼴, 배경을 내 취향대로 바꾼다 */
+    body  { font-family: sans-serif; background: #f4f6fb; color: #222;
+            max-width: 720px; margin: 40px auto; padding: 0 16px; }
+    h1    { color: #3949ab; }
+    .card { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    input, select, button { font-size: 16px; padding: 6px 10px; margin: 4px 0; }
+    li    { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <!-- TODO: 학번, 이름, 소개 문장을 바꾼다 -->
+  <h1>학번 이름의 취향 페이지</h1>
+  <p>내가 좋아하는 것을 소개합니다.</p>
+
+  <div class="card">
+    <h2>취향 추가</h2>
+    <input id="name" placeholder="좋아하는 것">
+    <input id="reason" placeholder="좋아하는 이유">
+    <select id="rating">
+      <option value="5">별 5개</option>
+      <option value="4">별 4개</option>
+      <option value="3">별 3개</option>
+      <option value="2">별 2개</option>
+      <option value="1">별 1개</option>
+    </select>
+    <button onclick="addFavorite()">추가</button>
+  </div>
+
+  <div class="card">
+    <h2>내 취향 목록</h2>
+    <ul id="list"></ul>
+  </div>
+
+  <!-- TODO: 내가 정한 기능의 버튼을 여기에 추가한다 -->
+
+  <script>
+    // 서버(/api/favorites)에서 목록을 받아 화면에 그린다
+    async function loadList() {
+      const res = await fetch('/api/favorites');
+      const items = await res.json();
+      const ul = document.getElementById('list');
+      ul.innerHTML = '';
+      for (const f of items) {
+        const li = document.createElement('li');
+        li.textContent = f.name + ' - ' + (f.reason || '') + ' (' + '★'.repeat(f.rating || 0) + ')';
+        ul.appendChild(li);
+      }
+    }
+
+    // 입력한 취향을 서버로 보내 DB 에 저장한 뒤 목록을 다시 그린다
+    async function addFavorite() {
+      const body = {
+        name: document.getElementById('name').value,
+        reason: document.getElementById('reason').value,
+        rating: Number(document.getElementById('rating').value)
+      };
+      if (!body.name) { alert('좋아하는 것을 입력하세요'); return; }
+      await fetch('/api/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      document.getElementById('name').value = '';
+      document.getElementById('reason').value = '';
+      loadList();
+    }
+
+    loadList();
+  </script>
+</body>
+</html>
